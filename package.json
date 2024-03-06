@@ -1,0 +1,47 @@
+{
+  "name": "custompolicychecks",
+  "displayName": "CustomPolicyChecks",
+  "description": "An easy way to make custom policy checks, right in your own editor!",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "custompolicychecks.policyCheck",
+        "title": "Policy Check"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "node ./esbuild.js",
+    "watch": "node ./esbuild.js --watch",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test",
+    "package": "NODE_ENV=production node ./esbuild.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.83.0",
+    "@types/vscode-webview": "^1.57.5",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "@vscode/test-cli": "^0.0.6",
+    "@vscode/test-electron": "^2.3.9",
+    "esbuild": "^0.16.17",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@vscode/webview-ui-toolkit": "^1.4.0"
+  }
+}

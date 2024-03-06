@@ -1,0 +1,8 @@
+out
+dist
+node_modules
+.vscode-test/
+*.vsix
+
+# React Component Preview
+previewConfig.json
