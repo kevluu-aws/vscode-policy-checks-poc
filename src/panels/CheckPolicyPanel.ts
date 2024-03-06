@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import * as fs from 'fs';
-import { AccessAnalyzerClient, CheckAccessNotGrantedCommand, CheckNoNewAccessCommand } from "@aws-sdk/client-accessanalyzer";
+import { AccessAnalyzerClient, CheckAccessNotGrantedCommand, CheckNoNewAccessCommand, ValidationException } from "@aws-sdk/client-accessanalyzer";
 
 export class CheckPolicyPanel {
   public static currentPanel: CheckPolicyPanel | undefined;
@@ -99,12 +99,21 @@ export class CheckPolicyPanel {
           case "run-check-access-not-granted":
             const checkAccessNotGrantedInput = {
               policyDocument: message.input,
-              access: message.actions,
+              access: [
+                {
+                  actions: message.actions
+                }
+              ],
               policyType: message.type,
             };
             const checkAccessNotGrantedCommand = new CheckAccessNotGrantedCommand(checkAccessNotGrantedInput);
-            const checkAccessNotGrantedResponse = await this.client.send(checkAccessNotGrantedCommand);
-            vscode.window.showInformationMessage(checkAccessNotGrantedResponse.message + ": " + checkAccessNotGrantedResponse.result);
+            try {
+              const checkAccessNotGrantedResponse = await this.client.send(checkAccessNotGrantedCommand);
+              vscode.window.showInformationMessage(checkAccessNotGrantedResponse.result + ": " + checkAccessNotGrantedResponse.message);
+            } catch (e: any) {
+              vscode.window.showErrorMessage(e.message);
+            }
+
             return;
           case "run-check-no-new-access":
             const checkNoNewAccessInput = {
@@ -113,8 +122,12 @@ export class CheckPolicyPanel {
               policyType: message.type,
             };
             const checkNoNewAccessCommand = new CheckNoNewAccessCommand(checkNoNewAccessInput);
-            const checkNoNewAccessResponse = await this.client.send(checkNoNewAccessCommand);
-            vscode.window.showInformationMessage(checkNoNewAccessResponse.message + ": " + checkNoNewAccessResponse.result);
+            try {
+              const checkNoNewAccessResponse = await this.client.send(checkNoNewAccessCommand);
+              vscode.window.showInformationMessage(checkNoNewAccessResponse.result + ": " + checkNoNewAccessResponse.message);
+            } catch (e: any) {
+              vscode.window.showErrorMessage(e.message);
+            }
             return;
           case "control-path":
             if (fs.existsSync(message.text)) {

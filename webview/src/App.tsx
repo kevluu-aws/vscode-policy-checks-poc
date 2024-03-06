@@ -30,7 +30,7 @@ function App() {
       vscode.postMessage({
         command: "run-check-access-not-granted",
         input: inputTextArea,
-        actions: controlTextArea,
+        actions: controlTextArea.split(','),
         type: policyType
       });
     }
@@ -62,6 +62,19 @@ function App() {
       }
       case "Resource": {
         setPolicyType("RESOURCE_POLICY");
+        break;
+      }
+    }
+  }
+
+  function handleTextAreaChange(event: any, command: string){
+    switch(command){
+      case "input": {
+        setInputTextArea(event.target.value);
+        break;
+      }
+      case "control": {
+        setControlTextArea(event.target.value);
         break;
       }
     }
@@ -116,8 +129,8 @@ function App() {
       </div>
       <VSCodeDivider role="separator"></VSCodeDivider>
       <div className="policy-text-area-container">
-        <VSCodeTextArea rows={30} name="input" placeholder="Enter policy document" value={inputTextArea}>Input policies</VSCodeTextArea>
-        <VSCodeTextArea rows={30} name="control" placeholder={controlPlaceholder} value={controlTextArea}>{controlLabel}</VSCodeTextArea>
+        <VSCodeTextArea rows={30} name="input" onChange={(event) => handleTextAreaChange(event, "input")} placeholder="Enter policy document" value={inputTextArea}>Input policies</VSCodeTextArea>
+        <VSCodeTextArea rows={30} name="control" onChange={(event) => handleTextAreaChange(event, "control")} placeholder={controlPlaceholder} value={controlTextArea}>{controlLabel}</VSCodeTextArea>
       </div>
       <div className="path-container">
         <div className="input-path-container">
