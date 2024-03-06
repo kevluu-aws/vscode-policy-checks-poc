@@ -2,11 +2,13 @@ import * as vscode from "vscode";
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import * as fs from 'fs';
+import { AccessAnalyzerClient, CheckAccessNotGrantedCommand, CheckNoNewAccessCommand } from "@aws-sdk/client-accessanalyzer";
 
 export class CheckPolicyPanel {
   public static currentPanel: CheckPolicyPanel | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
+  private client = new AccessAnalyzerClient({region: 'us-west-2'});
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
@@ -90,23 +92,44 @@ export class CheckPolicyPanel {
   
   private _setWebviewMessageListener(webview: vscode.Webview) {
     webview.onDidReceiveMessage(
-      (message: any) => {
+      async (message: any) => {
         const command = message.command;
-        const text = message.text;
 
         switch (command) {
-          case "run":
-            // Code that should run in response to the hello message command
-            vscode.window.showInformationMessage(text);
+          case "run-check-access-not-granted":
+            const checkAccessNotGrantedInput = {
+              policyDocument: message.input,
+              access: message.actions,
+              policyType: message.type,
+            };
+            const checkAccessNotGrantedCommand = new CheckAccessNotGrantedCommand(checkAccessNotGrantedInput);
+            const checkAccessNotGrantedResponse = await this.client.send(checkAccessNotGrantedCommand);
+            vscode.window.showInformationMessage(checkAccessNotGrantedResponse.message + ": " + checkAccessNotGrantedResponse.result);
+            return;
+          case "run-check-no-new-access":
+            const checkNoNewAccessInput = {
+              newPolicyDocument: message.input,
+              existingPolicyDocument: message.control,
+              policyType: message.type,
+            };
+            const checkNoNewAccessCommand = new CheckNoNewAccessCommand(checkNoNewAccessInput);
+            const checkNoNewAccessResponse = await this.client.send(checkNoNewAccessCommand);
+            vscode.window.showInformationMessage(checkNoNewAccessResponse.message + ": " + checkNoNewAccessResponse.result);
             return;
           case "control-path":
-            if (fs.existsSync(text)) {
-              fs.readFile(text, (err, data) => {
-                webview.postMessage({command: 'control-text', message: data});
+            if (fs.existsSync(message.text)) {
+              fs.readFile(message.text, (err, data) => {
+                webview.postMessage({command: 'control-text', message: data.toString()});
               });
             }
             return;
-
+          case "input-path":
+            if (fs.existsSync(message.text)) {
+              fs.readFile(message.text, (err, data) => {
+                webview.postMessage({command: 'input-text', message: data.toString()});
+              });
+            }
+            return;
           // Add more switch case statements here as more webview message commands
           // are created within the webview context (i.e. inside media/main.js)
         }
