@@ -4,6 +4,7 @@ main {
     justify-content: center;
     align-items: flex-start;
     height: 100%;
+    width: 100%;
 }
 
 .dropdown-container {
@@ -47,17 +48,16 @@ main {
     margin-right: 0;
 }
 
-.input {
-    width: 50%;
-    height: 100%;
-}
-
 .control {
     width: 50%;
     height: 100%;
 }
 
-.path-container {
+.control-path-text-field {
+    width: 50%;
+}
+
+.control-path-container {
     display: grid;
     grid-auto-flow: column;
     grid-column-gap: 10px;
@@ -67,9 +67,13 @@ main {
 }
 
 .input-path-container {
-    width: 50%;
+    display: grid;
+    grid-auto-flow: column;
+    grid-column-gap: 10px;
+    width: 100%;
+    height: 100%;
+    margin-bottom: 5px;
 }
-
-.control-path-container {
+.input-path-text-field {
     width: 50%;
 }

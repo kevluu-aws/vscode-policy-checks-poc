@@ -12,7 +12,7 @@ function App() {
           setControlTextArea(event.data.message);
           return
         case "input-text":
-          setInputTextArea(event.data.message);
+          setInputPath(event.data.message);
           return
       }
     });
@@ -22,14 +22,12 @@ function App() {
     if(controlLabel === "Control policies"){
       vscode.postMessage({
         command: "run-check-no-new-access",
-        input: inputTextArea,
         control: controlTextArea,
         type: policyType
       });
     } else {
       vscode.postMessage({
         command: "run-check-access-not-granted",
-        input: inputTextArea,
         actions: controlTextArea.split(','),
         type: policyType
       });
@@ -69,10 +67,6 @@ function App() {
 
   function handleTextAreaChange(event: any, command: string){
     switch(command){
-      case "input": {
-        setInputTextArea(event.target.value);
-        break;
-      }
       case "control": {
         setControlTextArea(event.target.value);
         break;
@@ -81,7 +75,6 @@ function App() {
   }
 
   const [controlTextArea, setControlTextArea] = useState("");
-  const [inputTextArea, setInputTextArea] = useState("");
   
   function handleControlPathChange(event: any){
     vscode.postMessage({
@@ -90,6 +83,7 @@ function App() {
     });
   }
 
+  const [inputPath, setInputPath] = useState("");
   function handleInputPathChange(event: any){
     vscode.postMessage({
       command: "input-path",
@@ -129,16 +123,14 @@ function App() {
       </div>
       <VSCodeDivider role="separator"></VSCodeDivider>
       <div className="policy-text-area-container">
-        <VSCodeTextArea rows={30} name="input" onChange={(event) => handleTextAreaChange(event, "input")} placeholder="Enter policy document" value={inputTextArea}>Input policies</VSCodeTextArea>
         <VSCodeTextArea rows={30} name="control" onChange={(event) => handleTextAreaChange(event, "control")} placeholder={controlPlaceholder} value={controlTextArea}>{controlLabel}</VSCodeTextArea>
       </div>
-      <div className="path-container">
-        <div className="input-path-container">
-          <VSCodeTextField id="input-path-text-field" onChange={(event) => handleInputPathChange(event)} placeholder="Input policy file path"></VSCodeTextField>
-        </div>
-        <div className="control-path-container">
-          <VSCodeTextField id="control-path-text-field" onChange={(event) => handleControlPathChange(event)} placeholder="Control policy file path"></VSCodeTextField>
-        </div>
+      <div className="control-path-container">
+        <VSCodeTextField id="control-path-text-field" onChange={(event) => handleControlPathChange(event)} placeholder="Control policy file path">Control File</VSCodeTextField>
+      </div>
+      <VSCodeDivider role="separator"></VSCodeDivider>
+      <div className="input-path-container">
+          <VSCodeTextField id="input-path-text-field" onChange={(event) => handleInputPathChange(event)} value={inputPath} readOnly placeholder="Input policy file path">Currently Read Input File</VSCodeTextField>
       </div>
     </main>
   );

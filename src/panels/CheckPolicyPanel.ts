@@ -9,22 +9,29 @@ export class CheckPolicyPanel {
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
   private client = new AccessAnalyzerClient({region: 'us-west-2'});
+  private static editedDocument: string = "";
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
     this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
     this._setWebviewMessageListener(this._panel.webview);
+    this._setActiveTextEditorListener();
+    if(vscode.window.activeTextEditor){
+      fs.readFile(vscode.window.activeTextEditor?.document.fileName!, (err, data) => {
+        CheckPolicyPanel.editedDocument = data.toString();
+      });
+    }
   }
 
   public static render(extensionUri: vscode.Uri) {
     if (CheckPolicyPanel.currentPanel) {
-        CheckPolicyPanel.currentPanel._panel.reveal(vscode.ViewColumn.One);
+        CheckPolicyPanel.currentPanel._panel.reveal(vscode.ViewColumn.Two);
     } else {
         const panel = vscode.window.createWebviewPanel(
             'policyCheck',
             'Custom Policy Check',
-            vscode.ViewColumn.One,
+            vscode.ViewColumn.Two,
             {
               // Enable javascript in the webview
               enableScripts: true,
@@ -89,6 +96,20 @@ export class CheckPolicyPanel {
       </html>
     `;
   }
+
+  private _setActiveTextEditorListener(){
+    vscode.window.onDidChangeActiveTextEditor(
+      (message: any) => {
+        const editedFile = vscode.window.activeTextEditor?.document.fileName;
+        CheckPolicyPanel.currentPanel!._panel.webview.postMessage({command: 'input-text', message: editedFile!.toString()});
+        fs.readFile(editedFile!, (err, data) => {
+          CheckPolicyPanel.editedDocument = data.toString();
+        });
+      },
+    undefined,
+    this._disposables
+    );
+  }
   
   private _setWebviewMessageListener(webview: vscode.Webview) {
     webview.onDidReceiveMessage(
@@ -98,7 +119,7 @@ export class CheckPolicyPanel {
         switch (command) {
           case "run-check-access-not-granted":
             const checkAccessNotGrantedInput = {
-              policyDocument: message.input,
+              policyDocument: CheckPolicyPanel.editedDocument,
               access: [
                 {
                   actions: message.actions
@@ -117,7 +138,7 @@ export class CheckPolicyPanel {
             return;
           case "run-check-no-new-access":
             const checkNoNewAccessInput = {
-              newPolicyDocument: message.input,
+              newPolicyDocument: CheckPolicyPanel.editedDocument,
               existingPolicyDocument: message.control,
               policyType: message.type,
             };
