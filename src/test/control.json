@@ -10,7 +10,7 @@
       {
         "Sid": "SecondStatement",
         "Effect": "Allow",
-        "Action": "s3:ListAllMyBuckets",
+        "Action": "*",
         "Resource": "*"
       },
       {
@@ -27,4 +27,4 @@
         "Condition": {"Bool": {"aws:MultiFactorAuthPresent": "true"}}
       }
     ]
-  }
+}

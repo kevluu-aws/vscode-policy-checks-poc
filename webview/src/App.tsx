@@ -13,6 +13,7 @@ function App() {
           return
         case "input-text":
           setInputPath(event.data.message);
+          setInputPathSize(event.data.message.length);
           return
       }
     });
@@ -32,6 +33,13 @@ function App() {
         type: policyType
       });
     }
+  }
+
+  function handleValidateRunClick() {
+      vscode.postMessage({
+        command: "validate-policy",
+        type: policyType
+      });
   }
 
   const [controlLabel, setControlLabel] = useState("Control policies");
@@ -75,25 +83,54 @@ function App() {
   }
 
   const [controlTextArea, setControlTextArea] = useState("");
-  
+  const [controlPathSize, setControlPathSize] = useState(20);
   function handleControlPathChange(event: any){
     vscode.postMessage({
       command: "control-path",
       text: event.target.value,
     });
+    setControlPathSize(event.target.value.length);
   }
 
+  const [inputPathSize, setInputPathSize] = useState(20);
   const [inputPath, setInputPath] = useState("");
-  function handleInputPathChange(event: any){
-    vscode.postMessage({
-      command: "input-path",
-      text: event.target.value,
-    });
-  }
 
   return (
     <main>
-      <h1>Policy Checks</h1>
+      <div>
+        <h1>Policy Checks</h1>
+        <div className="input-path-container">
+          <VSCodeTextField id="input-path-text-field" value={inputPath} size={inputPathSize}readOnly disabled placeholder="Input policy file path">Currently Read Input File</VSCodeTextField>
+        </div>
+        <div className="main-dropdown-container">
+          <div className="dropdown-container">
+            <label htmlFor="template-selection">Policy Language</label>
+            <VSCodeDropdown id="template-selection">
+              <VSCodeOption>JSON Policy Language</VSCodeOption>
+              <VSCodeOption>CloudFormation</VSCodeOption>
+              <VSCodeOption>Terraform</VSCodeOption>
+            </VSCodeDropdown>
+          </div>
+          <div className="dropdown-container">
+            <label htmlFor="policy-type-selection">Policy Type</label>
+            <VSCodeDropdown id="policy-type-selection" onChange={(event) => handlePolicyTypeChange(event)}>
+              <VSCodeOption>Identity</VSCodeOption>
+              <VSCodeOption>Resource</VSCodeOption>
+            </VSCodeDropdown>
+          </div>
+        </div>
+      </div>
+      <VSCodeDivider role="separator"></VSCodeDivider>
+      <h2>Validate Policies</h2>
+      <div className="validate-container">
+        <p> IAM Access Analyzer validates your policy against IAM policy grammar and AWS best practices. You can view policy validation check findings that include security warnings, errors, general warnings, and suggestions for your policy. These findings provide actionable recommendations that help you author policies that are functional and conform to security best practices. </p>
+        <div className="validate-button-container">
+          <VSCodeButton id="validate-run-button" onClick={handleValidateRunClick}>Run Policy Validation</VSCodeButton>
+        </div>
+      </div>
+      <VSCodeDivider role="separator"></VSCodeDivider>
+      <h2>Custom Checks</h2>
+      <p>You can validate your policies against your specified security standards using AWS Identity and Access Management Access Analyzer custom policy checks.</p>
       <div className="config-container">
         <div className="dropdown-container">
           <label htmlFor="api-function">Check Type</label>
@@ -102,35 +139,15 @@ function App() {
             <VSCodeOption>CheckAccessNotGranted</VSCodeOption>
           </VSCodeDropdown>
         </div>
-        <div className="dropdown-container">
-          <label htmlFor="template-selection">Policy Language</label>
-          <VSCodeDropdown id="template-selection">
-            <VSCodeOption>JSON Policy Language</VSCodeOption>
-            <VSCodeOption>CloudFormation</VSCodeOption>
-            <VSCodeOption>Terraform</VSCodeOption>
-          </VSCodeDropdown>
-        </div>
-        <div className="dropdown-container">
-          <label htmlFor="policy-type-selection">Policy Type</label>
-          <VSCodeDropdown id="policy-type-selection" onChange={(event) => handlePolicyTypeChange(event)}>
-            <VSCodeOption>Identity</VSCodeOption>
-            <VSCodeOption>Resource</VSCodeOption>
-          </VSCodeDropdown>
-        </div>
-        <div className="button-container">
-          <VSCodeButton id="run-button" onClick={handleRunClick}>Run</VSCodeButton>
+        <div className="control-path-container">
+          <VSCodeTextField id="control-path-text-field" onChange={(event) => handleControlPathChange(event)} size={controlPathSize} placeholder="Control policy file path">Control File</VSCodeTextField>
         </div>
       </div>
-      <VSCodeDivider role="separator"></VSCodeDivider>
       <div className="policy-text-area-container">
         <VSCodeTextArea rows={30} name="control" onChange={(event) => handleTextAreaChange(event, "control")} placeholder={controlPlaceholder} value={controlTextArea}>{controlLabel}</VSCodeTextArea>
       </div>
-      <div className="control-path-container">
-        <VSCodeTextField id="control-path-text-field" onChange={(event) => handleControlPathChange(event)} placeholder="Control policy file path">Control File</VSCodeTextField>
-      </div>
-      <VSCodeDivider role="separator"></VSCodeDivider>
-      <div className="input-path-container">
-          <VSCodeTextField id="input-path-text-field" onChange={(event) => handleInputPathChange(event)} value={inputPath} readOnly placeholder="Input policy file path">Currently Read Input File</VSCodeTextField>
+      <div className="button-container">
+          <VSCodeButton id="run-button" onClick={handleRunClick}>Run Custom Policy Check</VSCodeButton>
       </div>
     </main>
   );

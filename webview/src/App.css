@@ -13,6 +13,8 @@ main {
     flex-flow: column nowrap;
     align-items: flex-start;
     justify-content: flex-start;
+    margin-right: 10px;
+    margin-bottom: 5px;
 }
   
 .dropdown-container label {
@@ -21,15 +23,14 @@ main {
     cursor: pointer;
     font-size: var(--vscode-font-size);
     line-height: normal;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
 }
 
 .config-container {
     display: grid;
-    grid-auto-flow: column;
+    grid-auto-flow: row;
     grid-column-gap: 10px;
     margin-bottom: 10px;
-    width: 100%;
 }
 
 .policy-text-area-container {
@@ -41,39 +42,44 @@ main {
     margin-bottom: 5px;
 }
 
-.button-container {
-    display: flex;
-    justify-content: flex-end;
-    margin-left: auto;
-    margin-right: 0;
-}
-
 .control {
     width: 50%;
     height: 100%;
-}
-
-.control-path-text-field {
-    width: 50%;
 }
 
 .control-path-container {
     display: grid;
     grid-auto-flow: column;
     grid-column-gap: 10px;
-    width: 100%;
     height: 100%;
     margin-bottom: 5px;
 }
 
-.input-path-container {
-    display: grid;
-    grid-auto-flow: column;
-    grid-column-gap: 10px;
-    width: 100%;
+.main-dropdown-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
     height: 100%;
-    margin-bottom: 5px;
+    width: 100%;
 }
-.input-path-text-field {
-    width: 50%;
+
+.validate-container {
+    display: grid;
+    grid-auto-flow: row;
+    grid-column-gap: 10px;
+    height: 100%;
+    margin-bottom: 10px;
+}
+
+.run-button {
+    width: fit-content;
+    height: fit-content;
+}
+
+.button-container {
+    display: grid;
+    justify-content: center;
+    width: fit-content;
+    height: fit-content;
+    padding-bottom: 10px;
 }
