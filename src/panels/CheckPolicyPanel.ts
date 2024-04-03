@@ -3,13 +3,16 @@ import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import * as fs from 'fs';
 import { AccessAnalyzerClient, CheckAccessNotGrantedCommand, CheckNoNewAccessCommand, FindingDetails, ValidatePolicyCommand, ValidatePolicyFindingType } from "@aws-sdk/client-accessanalyzer";
+import { exec } from "child_process";
 
 export class CheckPolicyPanel {
   public static currentPanel: CheckPolicyPanel | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
-  private client = new AccessAnalyzerClient({region: 'us-west-2'});
+  private region = "us-west-2";
+  private client = new AccessAnalyzerClient({region: this.region});
   private static editedDocument: string = "";
+  private static editedDocumentFileName: string = "";
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
@@ -18,8 +21,10 @@ export class CheckPolicyPanel {
     this._setWebviewMessageListener(this._panel.webview);
     this._setActiveTextEditorListener();
     if(vscode.window.activeTextEditor){
-      fs.readFile(vscode.window.activeTextEditor?.document.fileName!, (err, data) => {
+      fs.readFile(vscode.window.activeTextEditor?.document.uri.path, (err, data) => {
+        CheckPolicyPanel.editedDocumentFileName = vscode.window.activeTextEditor?.document.uri.path!;
         CheckPolicyPanel.editedDocument = data.toString();
+        CheckPolicyPanel.currentPanel!._panel.webview.postMessage({command: 'input-text', message: CheckPolicyPanel.editedDocumentFileName});
       });
     }
   }
@@ -31,7 +36,7 @@ export class CheckPolicyPanel {
         const panel = vscode.window.createWebviewPanel(
             'policyCheck',
             'Custom Policy Check',
-            vscode.ViewColumn.Two,
+            vscode.ViewColumn.Beside,
             {
               // Enable javascript in the webview
               enableScripts: true,
@@ -101,7 +106,8 @@ export class CheckPolicyPanel {
     vscode.window.onDidChangeActiveTextEditor(
       (message: any) => {
         const editedFile = vscode.window.activeTextEditor?.document;
-        CheckPolicyPanel.currentPanel!._panel.webview.postMessage({command: 'input-text', message: editedFile!.fileName.toString()});
+        CheckPolicyPanel.editedDocumentFileName = editedFile!.uri.path;
+        CheckPolicyPanel.currentPanel!._panel.webview.postMessage({command: 'input-text', message: CheckPolicyPanel.editedDocumentFileName});
         CheckPolicyPanel.editedDocument = editedFile!.getText();
       },
     undefined,
@@ -121,7 +127,7 @@ export class CheckPolicyPanel {
         const command = message.command;
 
         switch (command) {
-          case "run-check-access-not-granted":
+          case "run-check-access-not-granted-jsn":
             const checkAccessNotGrantedInput = {
               policyDocument: CheckPolicyPanel.editedDocument,
               access: [
@@ -141,9 +147,8 @@ export class CheckPolicyPanel {
             } catch (e: any) {
               vscode.window.showErrorMessage(e.message);
             }
-
             return;
-          case "run-check-no-new-access":
+          case "run-check-no-new-access-jsn":
             const checkNoNewAccessInput = {
               newPolicyDocument: CheckPolicyPanel.editedDocument,
               existingPolicyDocument: message.control,
@@ -167,7 +172,7 @@ export class CheckPolicyPanel {
               });
             }
             return;
-          case "validate-policy":
+          case "validate-policy-jsn":
             const validatePolicyInput = {
               policyDocument: CheckPolicyPanel.editedDocument,
               policyType: message.type
@@ -175,8 +180,8 @@ export class CheckPolicyPanel {
             const validatePolicyCommand = new ValidatePolicyCommand(validatePolicyInput);
             try {
               const validatePolicyResponse = await this.client.send(validatePolicyCommand);
-              if(validatePolicyResponse.findings !== undefined) {
-                validatePolicyResponse.findings.forEach(finding => {
+              if(validatePolicyResponse.findings!.length > 0) {
+                validatePolicyResponse.findings!.forEach(finding => {
                   if(finding.findingType === ValidatePolicyFindingType.ERROR) {
                     vscode.window.showErrorMessage(finding.findingType + ": " + finding.findingDetails + "\n" + finding.locations?.toString());
                   } else {
@@ -186,12 +191,22 @@ export class CheckPolicyPanel {
               } else {
                 vscode.window.showInformationMessage("Policy checks did not discover any problems with your policy!");
               }
-
             } catch (e: any) {
               vscode.window.showErrorMessage(e.message);
             }
-          // Add more switch case statements here as more webview message commands
-          // are created within the webview context (i.e. inside media/main.js)
+          case "validate-policy-tf":
+            return;
+          case "validate-policy-cfn":
+            const templatePath = CheckPolicyPanel.editedDocumentFileName;
+            const command = `cfn-policy-validator validate --template-path ${templatePath} --region ${this.region}`;
+            exec(command, (err, output) => {
+              if(err){
+                vscode.window.showErrorMessage("Failed to run command: " + err);
+              } else {
+                vscode.window.showInformationMessage(output);
+              }
+            });
+            return;
         }
       },
       undefined,

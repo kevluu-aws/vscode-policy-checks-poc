@@ -10,7 +10,7 @@
       {
         "Sid": "SecondStatement",
         "Effect": "Allow",
-        "Action": "*",
+        "Action": "s3:ListAllMyBuckets",
         "Resource": "*"
       },
       {

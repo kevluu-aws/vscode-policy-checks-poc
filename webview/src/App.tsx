@@ -20,26 +20,77 @@ function App() {
   })
 
   function handleRunClick() {
-    if(controlLabel === "Control policies"){
-      vscode.postMessage({
-        command: "run-check-no-new-access",
-        control: controlTextArea,
-        type: policyType
-      });
-    } else {
-      vscode.postMessage({
-        command: "run-check-access-not-granted",
-        actions: controlTextArea.split(','),
-        type: policyType
-      });
+    switch(documentType) {
+      case "JSON Policy Language":
+        if(controlLabel === "Control policies"){
+          vscode.postMessage({
+            command: "run-check-no-new-access-jsn",
+            control: controlTextArea,
+            type: policyType
+          });
+        } else {
+          vscode.postMessage({
+            command: "run-check-access-not-granted-jsn",
+            actions: controlTextArea.split(','),
+            type: policyType
+          });
+        }
+        return
+      case "Terraform":
+        if(controlLabel === "Control policies"){
+          vscode.postMessage({
+            command: "run-check-no-new-access-tf",
+            control: controlTextArea,
+            type: policyType
+          });
+        } else {
+          vscode.postMessage({
+            command: "run-check-access-not-granted-tf",
+            actions: controlTextArea.split(','),
+            type: policyType
+          });
+        }
+        return
+      case "CloudFormation":
+        if(controlLabel === "Control policies"){
+          vscode.postMessage({
+            command: "run-check-no-new-access-cfn",
+            control: controlTextArea,
+            type: policyType
+          });
+        } else {
+          vscode.postMessage({
+            command: "run-check-access-not-granted-cfn",
+            actions: controlTextArea.split(','),
+            type: policyType
+          });
+        }
+        return
     }
+
   }
 
   function handleValidateRunClick() {
-      vscode.postMessage({
-        command: "validate-policy",
-        type: policyType
-      });
+    switch(documentType) {
+      case "JSON Policy Language":
+        vscode.postMessage({
+          command: "validate-policy-jsn",
+          type: policyType
+        });
+        return
+      case "Terraform":
+        vscode.postMessage({
+          command: "validate-policy-tf",
+          type: policyType
+        });
+        return
+      case "CloudFormation":
+        vscode.postMessage({
+          command: "validate-policy-cfn",
+          type: policyType
+        });
+        return
+    }
   }
 
   const [controlLabel, setControlLabel] = useState("Control policies");
@@ -95,6 +146,11 @@ function App() {
   const [inputPathSize, setInputPathSize] = useState(20);
   const [inputPath, setInputPath] = useState("");
 
+  const [documentType, setDocumentType] = useState("JSON Policy Language");
+  function handleDocumentTypeChange(event: any) {
+    setDocumentType(event.target.value);
+  }
+
   return (
     <main>
       <div>
@@ -105,7 +161,7 @@ function App() {
         <div className="main-dropdown-container">
           <div className="dropdown-container">
             <label htmlFor="template-selection">Policy Language</label>
-            <VSCodeDropdown id="template-selection">
+            <VSCodeDropdown id="template-selection" onChange={(event) => handleDocumentTypeChange(event)}>
               <VSCodeOption>JSON Policy Language</VSCodeOption>
               <VSCodeOption>CloudFormation</VSCodeOption>
               <VSCodeOption>Terraform</VSCodeOption>

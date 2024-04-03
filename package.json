@@ -39,7 +39,9 @@
     "@vscode/test-electron": "^2.3.9",
     "esbuild": "^0.16.17",
     "eslint": "^8.56.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@smithy/node-config-provider": "^2.3.0",
+    "@smithy/config-resolver": "^2.2.0"
   },
   "dependencies": {
     "@aws-sdk/client-accessanalyzer": "^3.525.1",
